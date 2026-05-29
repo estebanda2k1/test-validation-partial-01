@@ -1,5 +1,6 @@
 package ec.edu.epn.skyroute.service;
 
+import ec.edu.epn.SkyRouteApplication;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,12 +19,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class BaggageFeeCalculator {
 
+    private final SkyRouteApplication skyRouteApplication;
     private final PassengerService passengerService;
 
-    public BaggageFeeCalculator(PassengerService passengerService) {
+    public BaggageFeeCalculator(PassengerService passengerService, SkyRouteApplication skyRouteApplication) {
         this.passengerService = passengerService;
+        this.skyRouteApplication = skyRouteApplication;
     }
-
     /**
      * Calcula la tarifa total de equipaje.
      *
@@ -34,7 +36,23 @@ public class BaggageFeeCalculator {
      * @throws IllegalArgumentException si los parámetros no cumplen las restricciones
      */
     public double calculateFee(double weight, int bagCount, Long passengerId) {
-        // TODO: Implementar lógica de negocio y validación de excepciones
-        return 0.0;
+        if (weight <= 0 || bagCount <1 || passengerId == null) {
+            throw new IllegalArgumentException("Parametros del equipaje invalidos");
+        }
+
+        boolean isVip= passengerService.isVip(passengerId);
+        double total=0.0;
+        for  (int i=1; i<=bagCount; i++) {
+            boolean firstBagVipFree = isVip && i == 1 && weight <= 23.0;
+            if (firstBagVipFree) {
+                total += 0.0;
+            } else {
+                total += 30.0;
+                if (weight > 23.0) {
+                    total += 50.0;
+                }
+            }
+        }
+        return total;
     }
 }
